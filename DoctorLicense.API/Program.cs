@@ -18,9 +18,13 @@ builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
+
 builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
-        policy.WithOrigins("http://localhost:3000")
+        policy.WithOrigins(
+            "http://localhost:3000",
+            "https://doctor-license-management-git-main-sanvasus-projects.vercel.app",
+            "https://doctor-license-management-fe570h12b-sanvasus-projects.vercel.app")
               .AllowAnyHeader()
               .AllowAnyMethod()));
 
