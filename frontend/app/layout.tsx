@@ -38,9 +38,7 @@ export default function RootLayout({
               </div>
             </div>
 
-            <nav className="text-sm font-medium text-blue-600">
-              Doctors
-            </nav>
+          
           </div>
         </header>
 
