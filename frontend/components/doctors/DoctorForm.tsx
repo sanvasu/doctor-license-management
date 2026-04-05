@@ -99,17 +99,17 @@ export function DoctorForm({
   });
   const [errors, setErrors] = useState<FormErrors>({});
 
-  useEffect(() => {
-    setData({
-      fullName:          initial?.fullName          ?? '',
-      email:             initial?.email             ?? '',
-      specialization:    initial?.specialization    ?? '',
-      licenseNumber:     initial?.licenseNumber     ?? '',
-      licenseExpiryDate: toInputDate(initial?.licenseExpiryDate),
-    });
-    setErrors({});
-  }, [initial?.id]);
-
+useEffect(() => {
+  setData({
+    fullName:          initial?.fullName          ?? '',
+    email:             initial?.email             ?? '',
+    specialization:    initial?.specialization    ?? '',
+    licenseNumber:     initial?.licenseNumber     ?? '',
+    licenseExpiryDate: toInputDate(initial?.licenseExpiryDate),
+  });
+  setErrors({});
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, [initial?.id]);
   const set = (key: keyof FormData) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const updated = { ...data, [key]: e.target.value };
