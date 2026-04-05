@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="DoctorLicense.API/DoctorLicense.API.csproj" />
+  <Project Path="DoctorLicense.Application/DoctorLicense.Application.csproj" />
+  <Project Path="DoctorLicense.Domain/DoctorLicense.Domain.csproj" />
+  <Project Path="DoctorLicense.Infrastructure/DoctorLicense.Infrastructure.csproj" />
+</Solution>
