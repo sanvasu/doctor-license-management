@@ -52,7 +52,13 @@ public class DoctorRepository : IDoctorRepository
         return (doctors, totalCount);
     }
 
-
+    public async Task<bool> EmailExistsAsync(
+    string email, Guid? excludeId = null, CancellationToken ct = default)
+    => await _context.Doctors
+        .AnyAsync(d =>
+            d.Email == email.ToLowerInvariant() &&
+            d.Id != excludeId,
+            ct);
     public async Task<Doctor?> GetByIdAsync(Guid id, CancellationToken ct = default)
         => await _context.Doctors
             .FirstOrDefaultAsync(d => d.Id == id, ct);

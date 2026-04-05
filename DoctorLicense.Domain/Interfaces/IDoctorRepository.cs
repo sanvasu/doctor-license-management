@@ -23,4 +23,9 @@ public interface IDoctorRepository
     void Update(Doctor doctor);
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
+
+    Task<bool> EmailExistsAsync(
+    string email,
+    Guid? excludeId = null,
+    CancellationToken ct = default);
 }

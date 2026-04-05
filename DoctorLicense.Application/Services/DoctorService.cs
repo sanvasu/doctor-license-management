@@ -44,6 +44,7 @@ public class DoctorService : IDoctorService
     public async Task<DoctorDto> CreateAsync(CreateDoctorDto dto, CancellationToken ct = default)
     {
         await EnsureUniqueLicenseAsync(dto.LicenseNumber, excludeId: null, ct);
+        await EnsureUniqueEmailAsync(dto.Email, excludeId: null, ct);
 
         var doctor = Doctor.Create(
             dto.FullName,
@@ -64,6 +65,7 @@ public class DoctorService : IDoctorService
         var doctor = await GetOrThrowAsync(id, ct);
 
         await EnsureUniqueLicenseAsync(dto.LicenseNumber, excludeId: id, ct);
+        await EnsureUniqueEmailAsync(dto.Email, excludeId: id, ct);
 
         doctor.Update(
             dto.FullName,
@@ -118,6 +120,14 @@ public class DoctorService : IDoctorService
                 $"License number '{licenseNumber.ToUpperInvariant()}' is already in use.");
     }
 
+    private async Task EnsureUniqueEmailAsync(
+    string email, Guid? excludeId, CancellationToken ct)
+    {
+        var exists = await _repo.EmailExistsAsync(email, excludeId, ct);
+        if (exists)
+            throw new ConflictException(
+                $"Email '{email.ToLowerInvariant()}' is already in use.");
+    }
     private static DoctorDto ToDto(Doctor d) => new(
         d.Id,
         d.FullName,

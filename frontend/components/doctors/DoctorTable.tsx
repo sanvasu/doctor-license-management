@@ -155,10 +155,9 @@ export function DoctorTable({
   onDelete,
 }: Props) {
   return (
-    <div className="rounded-xl border border-slate-200
-                bg-white shadow-sm">
-     <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-200">
+    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-visible">
+     <div className="overflow-x-auto overflow-y-visible">
+      <table className="min-w-full divide-y divide-slate-200">
 
           {/* Header */}
           <thead className="bg-slate-50">
