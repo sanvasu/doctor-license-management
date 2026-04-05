@@ -1,10 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import type { Doctor, DoctorStatus } from '@/types/doctor';
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', {
@@ -19,8 +17,6 @@ function isExpiringSoon(iso: string) {
   return days > 0 && days <= 30;
 }
 
-// ── Skeleton loading row ──────────────────────────────────────────────────────
-
 function SkeletonRow() {
   return (
     <tr className="animate-pulse">
@@ -34,8 +30,6 @@ function SkeletonRow() {
   );
 }
 
-// ── Empty state ───────────────────────────────────────────────────────────────
-
 function EmptyState({ hasFilters }: { hasFilters: boolean }) {
   return (
     <tr>
@@ -43,22 +37,16 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
         <div className="flex flex-col items-center gap-3 text-slate-400">
           <span className="text-5xl">🩺</span>
           <p className="text-base font-medium text-slate-600">
-            {hasFilters
-              ? 'No doctors match your filters'
-              : 'No doctors registered yet'}
+            {hasFilters ? 'No doctors match your filters' : 'No doctors registered yet'}
           </p>
           <p className="text-sm">
-            {hasFilters
-              ? 'Try adjusting your search or filter.'
-              : 'Add your first doctor to get started.'}
+            {hasFilters ? 'Try adjusting your search or filter.' : 'Add your first doctor to get started.'}
           </p>
         </div>
       </td>
     </tr>
   );
 }
-
-// ── Action menu ───────────────────────────────────────────────────────────────
 
 const STATUS_TRANSITIONS: Record<DoctorStatus, DoctorStatus[]> = {
   Active:    ['Suspended'],
@@ -74,68 +62,94 @@ interface ActionMenuProps {
 }
 
 function ActionMenu({ doctor, onEdit, onStatusChange, onDelete }: ActionMenuProps) {
-  const [open, setOpen] = useState(false);
-  const transitions     = STATUS_TRANSITIONS[doctor.status] ?? [];
+  const [open, setOpen]     = useState(false);
+  const [coords, setCoords] = useState({ top: 0, right: 0 });
+  const btnRef              = useRef<HTMLButtonElement>(null);
+  const transitions         = STATUS_TRANSITIONS[doctor.status] ?? [];
+
+  const handleOpen = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setCoords({
+        top:   rect.bottom + window.scrollY + 4,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setOpen(o => !o);
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (btnRef.current && !btnRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
 
   return (
     <div className="relative inline-block text-left">
       <button
-        onClick={() => setOpen(o => !o)}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        ref={btnRef}
+        type="button"
+        onClick={handleOpen}
         className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100
-                   hover:text-slate-700 transition-colors"
+                   hover:text-slate-700 transition-colors focus:outline-none"
       >
         ⋯
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-1 w-44 rounded-lg border
-                        border-slate-200 bg-white shadow-lg py-1">
+        <div
+          style={{
+            position: 'fixed',
+            top:      coords.top,
+            right:    coords.right,
+            zIndex:   9999,
+          }}
+          className="w-44 rounded-lg border border-slate-200 bg-white
+                     shadow-lg ring-1 ring-black/5 py-1"
+        >
+          <button
+            type="button"
+            onMouseDown={() => { onEdit(doctor); setOpen(false); }}
+            className="flex w-full items-center gap-2 px-3 py-2 text-sm
+                       text-slate-700 hover:bg-slate-50 transition-colors"
+          >
+            ✏️ Edit Details
+          </button>
 
-          {/* Edit */}
-       <button
-  type="button"
-  onMouseDown={() => { onEdit(doctor); setOpen(false); }}
-  className="flex w-full items-center gap-2 px-3 py-2 text-sm
-             text-slate-700 hover:bg-slate-50 transition-colors"
->
-  ✏️ Edit Details
-</button>
+          {transitions.map(s => (
+            <button
+              key={s}
+              type="button"
+              onMouseDown={() => { onStatusChange(doctor.id, s); setOpen(false); }}
+              className="flex w-full items-center gap-2 px-3 py-2 text-sm
+                         text-slate-700 hover:bg-slate-50 transition-colors"
+            >
+              🔄 Mark as {s}
+            </button>
+          ))}
 
-{transitions.map(s => (
-  <button
-    key={s}
-    type="button"
-    onMouseDown={() => { onStatusChange(doctor.id, s); setOpen(false); }}
-    className="flex w-full items-center gap-2 px-3 py-2 text-sm
-               text-slate-700 hover:bg-slate-50 transition-colors"
-  >
-    🔄 Mark as {s}
-  </button>
-))}
+          <div className="my-1 border-t border-slate-100" />
 
-<div className="my-1 border-t border-slate-100" />
-
-<button
-  type="button"
-  onMouseDown={() => { onDelete(doctor); setOpen(false); }}
-  className="flex w-full items-center gap-2 px-3 py-2 text-sm
-             text-red-600 hover:bg-red-50 transition-colors"
->
-  🗑️ Delete
-</button>
+          <button
+            type="button"
+            onMouseDown={() => { onDelete(doctor); setOpen(false); }}
+            className="flex w-full items-center gap-2 px-3 py-2 text-sm
+                       text-red-600 hover:bg-red-50 transition-colors"
+          >
+            🗑️ Delete
+          </button>
         </div>
       )}
     </div>
   );
 }
 
-// ── Main table ────────────────────────────────────────────────────────────────
-
-const COLUMNS = [
-  'Doctor', 'Specialization', 'License No.',
-  'Expiry Date', 'Status', 'Added', ''
-];
+const COLUMNS = ['Doctor', 'Specialization', 'License No.', 'Expiry Date', 'Status', 'Added', ''];
 
 interface Props {
   doctors:        Doctor[];
@@ -155,31 +169,24 @@ export function DoctorTable({
   onDelete,
 }: Props) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-visible">
-     <div className="overflow-x-auto overflow-y-visible">
-      <table className="min-w-full divide-y divide-slate-200">
-
-          {/* Header */}
+    <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-slate-200">
           <thead className="bg-slate-50">
             <tr>
               {COLUMNS.map(col => (
-                <th
-                  key={col}
-                  className="px-4 py-3 text-left text-xs font-semibold
-                             uppercase tracking-wide text-slate-500"
-                >
+                <th key={col}
+                    className="px-4 py-3 text-left text-xs font-semibold
+                               uppercase tracking-wide text-slate-500">
                   {col}
                 </th>
               ))}
             </tr>
           </thead>
 
-          {/* Body */}
           <tbody className="divide-y divide-slate-100 bg-white">
             {loading
-              ? Array.from({ length: 5 }).map((_, i) => (
-                  <SkeletonRow key={i} />
-                ))
+              ? Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
               : doctors.length === 0
               ? <EmptyState hasFilters={hasFilters} />
               : doctors.map(doctor => {
@@ -187,12 +194,10 @@ export function DoctorTable({
                   const isExpired    = doctor.status === 'Expired';
 
                   return (
-                    <tr
-                      key={doctor.id}
-                      className={`transition-colors hover:bg-slate-50
-                                  ${isExpired ? 'bg-red-50/40' : ''}`}
-                    >
-                      {/* Doctor name + email */}
+                    <tr key={doctor.id}
+                        className={`transition-colors hover:bg-slate-50
+                                    ${isExpired ? 'bg-red-50/40' : ''}`}>
+
                       <td className="px-4 py-3">
                         <div className="flex flex-col">
                           <span className="text-sm font-medium text-slate-800">
@@ -204,12 +209,10 @@ export function DoctorTable({
                         </div>
                       </td>
 
-                      {/* Specialization */}
                       <td className="px-4 py-3 text-sm text-slate-600">
                         {doctor.specialization}
                       </td>
 
-                      {/* License number */}
                       <td className="px-4 py-3">
                         <code className="rounded bg-slate-100 px-1.5 py-0.5
                                          text-xs font-mono text-slate-700">
@@ -217,39 +220,28 @@ export function DoctorTable({
                         </code>
                       </td>
 
-                      {/* Expiry date */}
                       <td className="px-4 py-3">
                         <div className="flex flex-col gap-0.5">
-                          <span className={`text-sm
-                            ${isExpired
-                              ? 'text-red-600 font-medium'
-                              : 'text-slate-600'}`}>
+                          <span className={`text-sm ${isExpired ? 'text-red-600 font-medium' : 'text-slate-600'}`}>
                             {formatDate(doctor.licenseExpiryDate)}
                           </span>
                           {expiringSoon && (
-                            <span className="text-xs font-medium text-amber-600">
-                              ⚠ Expires soon
-                            </span>
+                            <span className="text-xs font-medium text-amber-600">⚠ Expires soon</span>
                           )}
                           {isExpired && (
-                            <span className="text-xs font-medium text-red-500">
-                              Expired
-                            </span>
+                            <span className="text-xs font-medium text-red-500">Expired</span>
                           )}
                         </div>
                       </td>
 
-                      {/* Status badge */}
                       <td className="px-4 py-3">
                         <StatusBadge status={doctor.status} />
                       </td>
 
-                      {/* Created date */}
                       <td className="px-4 py-3 text-xs text-slate-400">
                         {formatDate(doctor.createdDate)}
                       </td>
 
-                      {/* Actions */}
                       <td className="px-4 py-3 text-right">
                         <ActionMenu
                           doctor={doctor}
