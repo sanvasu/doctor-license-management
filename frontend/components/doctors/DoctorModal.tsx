@@ -100,6 +100,7 @@ export function DoctorModal({
       title={doctor ? 'Edit Doctor Details' : 'Register New Doctor'}
     >
       <DoctorForm
+        key={doctor?.id ?? 'new'}
         initial={doctor}
         onSubmit={onSubmit}
         onCancel={onClose}

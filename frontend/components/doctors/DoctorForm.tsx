@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { CreateDoctorDto, Doctor } from '@/types/doctor';
 
 type FormData = CreateDoctorDto;
@@ -37,6 +37,8 @@ function validate(data: FormData): FormErrors {
 
   if (!data.licenseExpiryDate)
     errors.licenseExpiryDate = 'Expiry date is required.';
+  else if (new Date(data.licenseExpiryDate) <= new Date())
+    errors.licenseExpiryDate = 'Expiry date must be a future date.';
 
   return errors;
 }
@@ -90,7 +92,8 @@ export function DoctorForm({
   saving,
   serverError,
 }: Props) {
-  const [data, setData]   = useState<FormData>({
+  // No useEffect needed — form resets via key prop in DoctorModal
+  const [data, setData]     = useState<FormData>({
     fullName:          initial?.fullName          ?? '',
     email:             initial?.email             ?? '',
     specialization:    initial?.specialization    ?? '',
@@ -99,22 +102,10 @@ export function DoctorForm({
   });
   const [errors, setErrors] = useState<FormErrors>({});
 
-useEffect(() => {
-  setData({
-    fullName:          initial?.fullName          ?? '',
-    email:             initial?.email             ?? '',
-    specialization:    initial?.specialization    ?? '',
-    licenseNumber:     initial?.licenseNumber     ?? '',
-    licenseExpiryDate: toInputDate(initial?.licenseExpiryDate),
-  });
-  setErrors({});
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, [initial?.id]);
   const set = (key: keyof FormData) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const updated = { ...data, [key]: e.target.value };
       setData(updated);
-      // Clear individual error as user fixes it
       if (errors[key]) {
         setErrors(prev => ({ ...prev, [key]: undefined }));
       }
@@ -193,15 +184,16 @@ useEffect(() => {
             className={inputClass(errors.licenseNumber)}
           />
         </Field>
-            <Field label="License Expiry Date" error={errors.licenseExpiryDate} required>
-              <input
-                type="date"
-                value={data.licenseExpiryDate}
-                min={new Date().toISOString().split('T')[0]}
-                onChange={set('licenseExpiryDate')}
-                className={inputClass(errors.licenseExpiryDate)}
-              />
-            </Field>
+
+        <Field label="License Expiry Date" error={errors.licenseExpiryDate} required>
+          <input
+            type="date"
+            value={data.licenseExpiryDate}
+            min={new Date().toISOString().split('T')[0]}
+            onChange={set('licenseExpiryDate')}
+            className={inputClass(errors.licenseExpiryDate)}
+          />
+        </Field>
 
       </div>
 
