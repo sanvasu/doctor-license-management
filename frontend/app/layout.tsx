@@ -26,7 +26,7 @@ export default function RootLayout({
             <div className="flex items-center gap-2.5">
               <div className="flex h-8 w-8 items-center justify-center
                               rounded-lg bg-blue-600 text-white text-sm">
-                ✚
+               <a href='/doctors'> ✚</a>
               </div>
               <div className="flex flex-col leading-tight">
                 <span className="text-sm font-semibold text-slate-800">

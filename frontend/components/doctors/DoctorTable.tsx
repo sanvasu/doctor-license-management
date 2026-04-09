@@ -241,6 +241,7 @@ export function DoctorTable({
                       <td className="px-4 py-3 text-xs text-slate-400">
                         {formatDate(doctor.createdDate)}
                       </td>
+             
 
                       <td className="px-4 py-3 text-right">
                         <ActionMenu

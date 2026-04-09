@@ -87,6 +87,8 @@ const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
             </option>
           ))}
         </select>
+
+        
       </div>
 
       {/* Right side — result count */}

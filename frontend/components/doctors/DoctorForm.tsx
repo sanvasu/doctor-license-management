@@ -92,7 +92,6 @@ export function DoctorForm({
   saving,
   serverError,
 }: Props) {
-  // No useEffect needed — form resets via key prop in DoctorModal
   const [data, setData]     = useState<FormData>({
     fullName:          initial?.fullName          ?? '',
     email:             initial?.email             ?? '',
